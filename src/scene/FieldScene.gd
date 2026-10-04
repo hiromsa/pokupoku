@@ -71,8 +71,11 @@ func _build_world(map: TileMapModel) -> void:
 	_camera.limit_bottom = map.height() * FieldTileLayer.TILE_SIZE
 	_camera.position_smoothing_enabled = true
 	_camera.position_smoothing_speed = CAMERA_SMOOTHING_SPEED
+	_camera.position = _hero_center()
 	add_child(_camera)
 	_camera.make_current()
+	# 補正開始点を現在の位置へ固定し、シーン開始直後に画面が滑らないようにする。
+	_camera.reset_smoothing()
 
 
 func _build_hud() -> void:
