@@ -8,9 +8,9 @@ RPG『ポクポク』の設計・決定事項を機能ごとに記録する場�
 | 文書 | 内容 | 状態 |
 |---|---|---|
 | [architecture.md](./architecture.md) | エンジン選定、レイヤ構成、依存ルール、テスト方針 | 作成済 |
-| [ui.md](./ui.md) | 画面レイアウト、コンポーネント構成、カラーパレット、キーバインド | 作成済 (Phase 0 時点) |
-| [assets.md](./assets.md) | ドット絵アセットの生成パイプラインとスプライト仕様 | Phase 1 で作成予定 |
-| [map-system.md](./map-system.md) | タイルマップ、移動、エンカウント | Phase 2 で作成予定 |
+| [ui.md](./ui.md) | 画面レイアウト、コンポーネント構成、カラーパレット、キーバインド | 作成済 (Phase 2 のフィールドHUD まで実装反映) |
+| [assets.md](./assets.md) | ドット絵アセットの生成パイプラインとスプライト仕様 | 未作成 (Phase 1 の内容は `docs/PROGRESS.md` §3 に記録) |
+| [map-system.md](./map-system.md) | タイルデータ (通行 / 下地)、マップ JSON、移動、歩行アニメ | 作成済 (Phase 2 のモック分。エンカウント未実装) |
 | [battle-system.md](./battle-system.md) | コマンドバトル、ダメージ計算、属性弱点、敵AI | Phase 3 で作成予定 |
 | [scenario-data.md](./scenario-data.md) | JSON データ構造、フラグ管理、イベント実行 | Phase 4 で作成予定 |
 | [mcp-browser-debug.md](./mcp-browser-debug.md) | ブラウザ操作用 MCP 設定 (Cline 用) | 未作成 |

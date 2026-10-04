@@ -1,6 +1,7 @@
 # UI 仕様
 
-- **ステータス**: 暫定 (Phase 0 でサンプル画像から実測した値。Phase 2 の実装時に微調整の可能性あり)
+- **ステータス**: 暫定 (Phase 0 でサンプル画像から実測した値。Phase 2 のフィールドHUD を
+  §10 の通り実装済み。戦闘・図鑑のレイアウトは未実装のため調整の可能性がある)
 - **出典**: `docs/sample_image/battle.jpg` / `enemies.jpg` / `field.jpg`
   のパネル領域を flood-fill で実測し、1024×559 → 640×360 へ 0.625 倍して確定した。
 
@@ -37,6 +38,21 @@
 | 角 | 角丸 4 px |
 | 外側ドロップシャドウ | 黒 2 px 右下オフセット |
 | 見出し | 白文字・文字間 1 px・中央寄せ |
+
+### 実装 (`src/ui/PanelFrame.gd` + `ui.parts` の `panel_9slice`)
+
+- 枠の地・白線・角丸は **生成済み 9 スライス画像** (`assets/images/ui/ui_parts.png` の
+  `panel_9slice` = 48×48) に焼き込む。GDScript 側で枠を再描画しない。
+- 画像は `res://` を直接参照せず、`SpriteSheetLayout.get_frame_texture("ui.parts", "ui.panel_9slice")`
+  で解決する (アセット再生成がそのまま反映される)。
+- `PanelFrame` は `NinePatchRect`。四隅 8 px を保持して引き伸ばす
+  (`PATCH_MARGIN = 8`。枠 2 px + 角丸 4 px が潰れない余白)。
+- `mouse_filter = MOUSE_FILTER_IGNORE` で入力を素通しにする (HUD は表示専用)。
+- 見出しは窓本体に描かず、`Label` を中央寄せで窓上端へ重ねる
+  (`コ マ ン ド` のように全角スペース区がけで表現する)。
+- 9 スライスのメタ (セル寸法・frame 名) は `assets/images/ui/ui_parts.json` が定義元。
+  数値を GDScript へハードコードしない。
+- **未実装**: 外側ドロップシャドウ (黒 2 px 右下)。Phase 2 のモックでは省略した。
 
 ## 3. カラーパレット (`src/ui/UiPalette.gd` が単一の定義元)
 
@@ -147,7 +163,65 @@
 
 **パッド / タッチ操作は未対応** (Web 配布を考えると Phase 5 以降で検討)。
 
-## 10. 未確定事項
+## 10. フィールドHUD 実装状況 (Phase 2)
+
+`src/ui/HudLayout.gd` が §1 の実測座標で 4 窓を構築する。
+位置・サイズは同ファイルの定数 (`STATUS_RECT` / `MESSAGE_RECT` / `COMMAND_TAB_RECT` /
+`COMMAND_MENU_RECT`) が定義元で、シーン側には書かない。
+
+### ノード構成 (`src/scene/FieldScene.gd`)
+
+```
+FieldScene (Node2D)
+├─ TileLayer   (FieldTileLayer)  タイルを描くだけ。TileMapModel を読む
+├─ Hero        (FieldHeroSprite) z_index = 10
+├─ Camera      (Camera2D)        マップ範囲で limit、平滑追従 speed 8.0
+└─ HudLayer    (CanvasLayer, layer = 10)
+   └─ Hud      (HudLayout)
+      ├─ StatusWindow / MessageWindow / CommandTab / CommandMenu (PanelFrame)
+      └─ Label (見出し 2 + 本文 3)
+```
+
+- HUD は `CanvasLayer` に載せるため、カメラが動いても画面へ固定される。
+- `HudLayout` は表示専用。状態を持たず、値は `set_status()` / `set_message()` /
+  `set_commands()` で上位 (シーン) から注入する。
+- コマンドは選択中のみ `【】` で囲む (§5)。1 行 1 項目・行ピッチ 18 px は
+  `line_spacing` オーバーライド (18 − 12) で作る。
+- 見出しは中央寄せ・文字間 1 px・12 px。本文 12 px、ステータス数値 11 px (§4 基準)。
+- 色は `UiPalette`、フォントは `UiFonts.pixel_font()` 経由のみ (ハードコード禁止)。
+
+### 主人公スプライト (`src/ui/FieldHeroSprite.gd`)
+
+- `Sprite2D`。フレーム名 `hero.field.<dir>.<phase>` を `SpriteSheetLayout` でランタイム解決。
+- `AnimatedSprite2D` + `SpriteFrames` は使わない。アトラスをエディタへ焼き込むと
+  アセット再生成が反映されなくなるため。
+- 歩行位相の進行は `domain/anim/FrameAnimator` が持ち、view はフレーム名を受け取るだけ。
+- 拡大は nearest 必須 (`project.godot` の `default_texture_filter=0`、シーン側でも `texture_filter = 0`)。
+
+### 目視レビューの手順
+
+`tools/debug/CaptureField.tscn` を実行すると 640×360 の画面を
+`tmp_preview/field_scene.png` へ保存する (`tmp_preview/` は gitignore 済み)。
+
+```
+tools/godot/Godot_v4.7.2-stable_win64_console.exe --path . \
+  --rendering-driver opengl3 --quit-after 120 res://tools/debug/CaptureField.tscn
+```
+
+### 現状の暫定値 (Phase 2 モック)
+
+| 項目 | 値 | 置き換え時期 |
+|---|---|---|
+| 名前 / HP / MP | `ゆうしゃ` / 25 / 5 (`FieldScene.PROTOTYPE_*` 定数) | ステータスシステム実装時 |
+| メッセージ | 操作説明の固定文 | イベント・コマンド結果の表示 |
+| コマンド | `はなす / しらべる / つかう / システム` を表示のみ | 選択操作の実装時 |
+
+### HUD で未実装
+
+- 外周ドロップシャドウ、タイトルバナー、BGM インジケータ
+- コマンド選択カーソル (`cursor` アセット) と決定 / 取消の操作系
+
+## 11. 未確定事項
 
 - ステータス窓の `MP` の意味 (上記 6)
 - 戦闘中のメッセージ窓にパネル枠を付けるか (サンプルでは素の文字描画になっている)

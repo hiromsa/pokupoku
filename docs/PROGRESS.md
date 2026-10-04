@@ -3,8 +3,8 @@
 > 新しいセッションを開始したら、まず本ファイルと `docs/specification/README.md`、
 > `docs/specification/ui.md` を読んで作業を引き継ぐこと (`.clinerules` 規定)。
 
-- **最終更新**: 2026-10-04 (Phase 1 完了 / Phase 2 着手直前)
-- **バージョン**: `0.0.1-beta.5`
+- **最終更新**: 2026-10-04 (Phase 2 のモック完了 / Phase 3 着手前)
+- **バージョン**: `0.0.1-beta.10`
 
 ---
 
@@ -14,7 +14,7 @@
 |---|---|---|
 | Phase 0 | 基盤スキャフォールド (Godot 導入 / テストランナー / ドキュメント) | **完了** |
 | Phase 1 | ドット絵アセット生成パイプライン | **完了** |
-| Phase 2 | マップ移動と UI のモック | 未着手 (**次・ユーザー合意済み**) |
+| Phase 2 | マップ移動と UI のモック | **完了** (エンカウント・コマンド操作は未実装。次フェーズ) |
 | Phase 3 | 戦闘システムの基礎 | 未着手 |
 | Phase 4 | データ読み込みとフラグ管理 | 未着手 |
 | Phase 5 | コンテンツ展開 (エリア1〜3 / 全10エネミー / 図鑑) | 未着手 |
@@ -67,7 +67,7 @@ src/scene/FieldScene.gd/.tscn        フィールド (暫定プレースホル�
 - `docs/specification/architecture.md` (レイヤ構成・依存ルール・テスト方針)
 - `docs/specification/ui.md` (サンプル画像を実測したレイアウト・パレット)
 
-## 3. Phase 1 で完了した内容 (コミット `d886b61`, `d64e94b`)
+## 3. Phase 1 で完了した内容 (コミット `2711509`, `13d8b21`)
 
 ### 生成パイプライン (`tools/asset_gen/`)
 
@@ -132,22 +132,87 @@ preview.py                tmp_preview/ に拡大画像を書き出す (目視レ
   `boro_no_tsurugi` は錆びた茶色にして安物感を先出し
 - UI: `cursor` を右向き三角 (`▶`) に修正 (当初は右下がり階段三角形だった)
 
-## 4. 検証結果
+## 4. Phase 2 で完了した内容 (コミット `285cdfb` `0f6b672` `46bc126`)
 
-| 検証 | 結果 |
+### domain 層 (すべて `RefCounted`。Node / autoload / 時間に非依存)
+
+```
+src/domain/data/TileCatalog.gd        tile_index.json → 表示名 / solid / base を解決
+src/domain/data/MapDefinition.gd      assets/data/maps/*.json を読んだ結果
+src/domain/map/TileMapModel.gd        グリッド + is_passable / base_tile_id_at / iter_tiles
+src/domain/map/MapLayoutDecoder.gd    rows + glyphs → TileMapModel
+src/domain/map/MovementController.gd  4 方向 1 タイル移動。step_progress / interpolated_tile
+src/domain/anim/FrameAnimator.gd      フレーム名の循環進行 (looping / holding)
+```
+
+### view 層 (描画専用。ドメインを読むだけで状態を変えない)
+
+```
+src/ui/FieldTileLayer.gd    TileMapModel を _draw() で走査。下地 → 障害物の順
+src/ui/FieldHeroSprite.gd   向き + 歩行位相で hero.field.<dir>.<phase> を差し替え
+src/ui/PanelFrame.gd        ui.parts の panel_9slice を NinePatchRect で展開
+src/ui/HudLayout.gd         ui.md §1 の座標で 4 窓 + ラベル。set_* で値を注入
+src/scene/FieldScene.gd     読み込み・組立て・入力受付・HUD への値の流し込み
+tools/debug/CaptureField.*  640×360 を tmp_preview/field_scene.png へ保存 (目視レビュー用)
+```
+
+### 下地 (base) タイル — 画面の穴をデータで塞いだ
+
+- 木・岩・大岩・柵・看板・図鑑台は透過背景のため、そのまま描くと背景が透けて
+  画面に穴として見えた (目視レビューで判明)。
+- 対応: `tile_index.json` に **`base`** を追加し、`FieldTileLayer` が
+  「下地の地面 → 障害物」の順で描画。通行判定は常に上層タイルのみ (`is_passable`)。
+- 定義元は `tools/asset_gen/sprite_defs/tiles_field.py` の `BASE_TILES`
+  (tree / rock / big_rock / fence / signboard → grass、codex_stand → cave_floor)。
+- 検出は二重に張った: `verify.py` は PNG の透過ピクセルを実測して宣言漏れを、
+  `PrototypeMapTest` はマップ上で下地が未登録 / 通行不可地面でないことを検出する。
+
+### マップデータ (外部 JSON)
+
+- `tools/asset_gen/prototype_map.py` → `assets/data/maps/prototype_village.json`
+  (30×20、出現 (5,11)、`rows` 文字列アート + `glyphs` 対応表)。`generate_all.py` から常時実行。
+- 地形の編集は GDScript を触らずにできる。行長不足が穴にならないよう生成時に全行の寸法を強制。
+
+### テスト (新規・更新)
+
+| ケース | 見ている内容 |
 |---|---|
-| `python tools/asset_gen/generate_all.py` | 26 PNG + 5 JSON を生成 (EXIT=0) |
-| `python tools/asset_gen/verify.py` | **checks=500 failures=0** |
-| `godot --headless --path . --import` | 成功 (EXIT=0)、ERROR なし |
-| `godot --headless --path . --script res://tests/run_tests.gd` | **cases=25 assertions=453 failures=0 (RESULT: OK, EXIT=0)** |
+| `TileCatalogTest` | `solid` / `base` の解決。未知・自己参照・非文字列の base は無視 |
+| `TileMapModelTest` | `is_passable`、`base_tile_id_at`、範囲外・空タイルは安全側 (通行不可) |
+| `MapLayoutDecoderTest` | rows + glyphs の展開。未知 glyph は空タイル (通行不可) |
+| `MovementControllerTest` | 1 タイル移動、壁では向きだけ、補間値、進行中は入力不可 |
+| `FrameAnimatorTest` | `looping` / `holding`、秒数に応じた進行と循環 |
+| `PrototypeMapTest` | 寸法・出現位置、外周封鎖、目印 3 地点への徒歩到達 (BFS)、水と家の遮蔽、下地の妥当性 |
+| `FieldAssetLookupTest` | hero / tile / base / HUD のフレーム名が実行時に解決するか |
 
-テスト内訳: `ProjectConfigTest` / `UiPaletteTest` / `VersionTest` /
-`AssetManifestTest` / `SpriteSheetLayoutTest`
+### 仕様ドキュメント
+
+- `docs/specification/map-system.md` **新規** (タイル属性・下地規約・マップ JSON・移動・歩行アニメ)
+- `docs/specification/ui.md` に §2 の実装方式と **§10 フィールドHUD 実装状況** を追記
+  (旧 §10 未確定事項は §11 へ繰り下げ)
+- `docs/specification/README.md` のインデックスを更新
+
+## 5. 検証結果
+
+| 検証 | Phase 1 | Phase 2 (現在) |
+|---|---|---|
+| `python tools/asset_gen/generate_all.py` | 26 PNG + 5 JSON | 26 PNG + 6 JSON (マップ JSON 増) |
+| `python tools/asset_gen/verify.py` | checks=500 failures=0 | **checks=721 failures=0** (タイル属性・下地・マップ検査増) |
+| `godot --headless --path . --import` | 成功、ERROR なし | 成功、ERROR なし |
+| `godot --headless --path . --script res://tests/run_tests.gd` | cases=25 assertions=453 | **cases=69 assertions=1508 failures=0 (RESULT: OK)** |
+| `godot --path . --rendering-driver opengl3 --quit-after 120 res://tools/debug/CaptureField.tscn` | 未実施 | 成功。`tmp_preview/field_scene.png` で目視確認済み |
+
+Phase 2 のテスト内訳: `ProjectConfigTest` / `UiPaletteTest` / `VersionTest` /
+`AssetManifestTest` / `SpriteSheetLayoutTest` / `TileCatalogTest` / `TileMapModelTest` /
+`MapLayoutDecoderTest` / `MovementControllerTest` / `FrameAnimatorTest` /
+`PrototypeMapTest` / `FieldAssetLookupTest`
+
+Phase 1 の目視レビュー結果 (主人公・エネミー・アイテム・UI の調整) は §3 を参照。
 
 Phase 0 で出ていた `WARNING: Asset manifest not found: res://assets/images/manifest.json` は
 解消済み (audio 側は未配置のまま)。
 
-## 5. 判明した注意点 (次回以降も必ず遵守)
+## 6. 判明した注意点 (次回以降も必ず遵守)
 
 1. **PowerShell 5.1 で日本語入りソースを編集してはいけない**
    `Set-Content -Encoding utf8` は BOM を付け、`-replace` は Shift-JIS として読み誤変換する。
@@ -167,34 +232,53 @@ Phase 0 で出ていた `WARNING: Asset manifest not found: res://assets/images/
    `tmp_preview/*.png` を `read_files` で見て判定する (tmp_preview は gitignore 済み)
 9. アトラスのフレーム名は `<asset_id>.<frame>` の連結で `sheets.json` に保存済み。
    行優先 (row-major) 順なので、並びを変えると `verify.py` と Godot 側の両方が壊れる
+10. **GDScript の真偽値は `true` / `false` (小文字)**。Python 風の `True` / `False` は
+    そのまま構文エラーになる (domain 実装時に実際に発生)
+11. **`const` に `PackedStringArray` は書けない** (定数式に許される型に限る)。
+    文字列配列の定数は `static func` で毎回組み立てる (`FieldHeroSprite.walk_phases()`)
+12. **Godot 実行中 (import / capture) に `.tscn` を編集すると失われることがある**。
+    実際に `FieldScene.tscn` へのノード追加が一度消えた。シーンファイルを編集したら
+    `Get-Content` で実ファイルを確認し、可能ならランタイム生成 (`add_child`) も併せておく
+13. **PowerShell では Godot の stderr 出力で `$LASTEXITCODE` が 1 になる偽陽性がある**。
+    成否は終了コードでなく `RESULT: OK` / `failures=0` の行で判定する
+14. 半透明タイルを足すときは `tile_index.json` の `base` も同時に足す。
+    忘れると画面に背景色の穴として現れるが、実行時は無警告 (検査は `verify.py` と
+    `PrototypeMapTest` が担う)
 
-## 6. 次の作業 (優先順)
+## 7. 次の作業 (優先順)
 
-**Phase 2 本実装に入る (ユーザー合意済み: タイルマップ + 移動 + HUD まで)**。
-`FieldScene.gd` は現在も Phase 0 の暫定プレースホルダ (ColorRect + Label のみ) なので作り替える。
+**Phase 3 (戦闘システムの基礎) に入る**。ただし Phase 2 の残りを先に片付ける方が安全。
 
-1. **`src/field/TileMapModel.gd`** — タイルグリッドのモデル (純ロジック, Node 非依存)
-   - セル値はタイル ID 文字列 (`tile.grass` 等)。当たり可否は別テーブル
-   - シード固定の決定論的生成 (テスト可能)。`tile_index.json` の ID だけを使う
-2. **`src/field/FieldTileRenderer.gd`** — モデルを受けて `Sprite2D` + `AtlasTexture` で描画
-   - 参照は `SpriteSheetLayout` 経由 (`tiles.field`)。`res://` 直指定禁止
-3. **`src/field/MovementController.gd`** — 4 方向移動・当たり判定・方向保持 (純ロジック)
-   - `InputRouter` の論理入力を購読する形にして UI 側と疎結合に保つ
-4. **`src/field/FieldHero.gd`** — 主人公ビュー (方向 + 歩行アニメ)
-   - フレーム: `hero.field.<dir>.{stand,step_l,step_r}`
-   - アニメ方式未定: `AnimatedSprite2D` + `SpriteFrames` に積むか、手動で `texture` 差し替えか
-5. **`src/ui/HudLayout.gd`** — ステータス窓 / メッセージ窓 (`ui.parts` の `panel_9slice` を NinePatch で)
-6. **`src/scene/FieldScene.gd`** — 上記の組立て (View は状態を上位で管理する疎結合構成を維持)
-7. **テスト追加**: `TileMapModelTest` (決定論生成・当たり判定) / `MovementControllerTest`
-   / `FieldAssetLookupTest` (hero/tiles のフレーム解決スモーク)
-8. `docs/specification/ui.md` に HUD・フィールドレイアウトの決定事項を追記 (**義務**)
+1. **ステータスシステム** — `domain/entity/Stats.gd` / `Character.gd` / `Hero.gd`
+   - `FieldScene.PROTOTYPE_*` 定数を実データへ置換し、`HudLayout.set_status()` へ渡す
+   - `docs/design.md` の能力値・レベル表を先に `docs/specification/battle-system.md` へ起こす
+2. **コマンドメニューの操作化** — `InputRouter` の `action_confirm` / `action_cancel` で選択。
+   `ui.parts` の `cursor` (▶) を選択行へ描画。`HudLayout` は表示専用のまま維持
+3. **タイルインタラクション** — `しらべる` で前向きタイルの `label` をメッセージ窓へ。
+   `codex_stand` で図鑑、`wooden_door` / 階段でエリア移動の足場を作る
+4. **エンカウント** — `domain/map/EncounterTable.gd` (歩数 + タイル重みの乱数注入式)。
+   草・森で発生し、水・道では発生しない。乱数は注入 (domain は乱数を知らない)
+5. **Phase 3 本実装** — `domain/battle/` (ターン順 / ダメージ計算 / 属性弱点 / 敵AI / ログ)
+   と戦闘シーン。`enemy.<id>.battle` (64×64) と `hero.battle` を使用
+6. **タイトル → フィールドの開始フロー** — `TitleScene` の「はじめから」で
+   `SceneRouter.goto()`。セーブスロット選択は Phase 4
 
-## 7. 未確定事項 (ユーザー確認が必要)
+## 8. 未確定事項 (ユーザー確認が必要)
 
 - ステータス窓の `MP` の意味 (主人公は MP 魔法を使わない設計のため)
 - 戦闘メッセージ窓にパネル枠を付けるか (サンプルでは素の文字描画)
 - BGM/SE WAV が未入手。8bit 風 WAV を程序生成するか、提供を待つか
 - Web 配布時のパッド / タッチ操作の要否
-- **(新) フィールド歩行アニメの実装方式**: `AnimatedSprite2D` + `SpriteFrames` か手動フレーム切替か
-- **(新) Phase 2 のテスト用マップ**: 1 エリア (例: 村 + 森) で十分か、初期エリア数を確定させるか
-- **(新) 当たり判定の粒度**: タイル単位の 4 方向のみか、斜め移動も許すか (現状の論理入力は 4 方向想定)
+- パネル枠のドロップシャドウ (ui.md §2 に仕様あり / 未実装)。
+  付けるなら 9 スライス画像側へ焼き込むのが安いが、枠の伸縮と相性が悪い
+
+### Phase 2 で決定済み (相談済み・実装済み)
+
+- **歩行アニメ**: `AnimatedSprite2D` + `SpriteFrames` でなく **手動フレーム切替**。
+  アトラスをエディタへ焼き込まないため、アセット再生成がそのまま反映される
+- **当たり判定の粒度**: **タイル単位の 4 方向のみ** (斜めなし)。
+  `tile_index.json` の `solid` が単一の定義元
+- **半透明タイルの下地**: `tile_index.json` の **`base`** で宣言。
+  描画順は下地 → 障害物で、通行判定は常に上層タイルのみ
+- **テスト用マップ**: **1 エリア (はじまりの草原 = 村 + 森 + 池)** で確定
+  (`assets/data/maps/prototype_village.json`)
