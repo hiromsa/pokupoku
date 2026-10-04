@@ -1,0 +1,411 @@
+{
+  "enemy.chap": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.chap.idle_a",
+      "enemy.chap.idle_b",
+      "enemy.chap.attack",
+      "enemy.chap.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_chap.png",
+    "rows": 1
+  },
+  "enemy.chap.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.chap.battle.idle_a",
+      "enemy.chap.battle.idle_b",
+      "enemy.chap.battle.attack",
+      "enemy.chap.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_chap_battle.png",
+    "rows": 1
+  },
+  "enemy.dosun": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.dosun.idle_a",
+      "enemy.dosun.idle_b",
+      "enemy.dosun.attack",
+      "enemy.dosun.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_dosun.png",
+    "rows": 1
+  },
+  "enemy.dosun.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.dosun.battle.idle_a",
+      "enemy.dosun.battle.idle_b",
+      "enemy.dosun.battle.attack",
+      "enemy.dosun.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_dosun_battle.png",
+    "rows": 1
+  },
+  "enemy.haka_bake": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.haka_bake.idle_a",
+      "enemy.haka_bake.idle_b",
+      "enemy.haka_bake.attack",
+      "enemy.haka_bake.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_haka_bake.png",
+    "rows": 1
+  },
+  "enemy.haka_bake.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.haka_bake.battle.idle_a",
+      "enemy.haka_bake.battle.idle_b",
+      "enemy.haka_bake.battle.attack",
+      "enemy.haka_bake.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_haka_bake_battle.png",
+    "rows": 1
+  },
+  "enemy.hyun": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.hyun.idle_a",
+      "enemy.hyun.idle_b",
+      "enemy.hyun.attack",
+      "enemy.hyun.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_hyun.png",
+    "rows": 1
+  },
+  "enemy.hyun.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.hyun.battle.idle_a",
+      "enemy.hyun.battle.idle_b",
+      "enemy.hyun.battle.attack",
+      "enemy.hyun.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_hyun_battle.png",
+    "rows": 1
+  },
+  "enemy.kachikochi": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.kachikochi.idle_a",
+      "enemy.kachikochi.idle_b",
+      "enemy.kachikochi.attack",
+      "enemy.kachikochi.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_kachikochi.png",
+    "rows": 1
+  },
+  "enemy.kachikochi.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.kachikochi.battle.idle_a",
+      "enemy.kachikochi.battle.idle_b",
+      "enemy.kachikochi.battle.attack",
+      "enemy.kachikochi.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_kachikochi_battle.png",
+    "rows": 1
+  },
+  "enemy.karekusa": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.karekusa.idle_a",
+      "enemy.karekusa.idle_b",
+      "enemy.karekusa.attack",
+      "enemy.karekusa.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_karekusa.png",
+    "rows": 1
+  },
+  "enemy.karekusa.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.karekusa.battle.idle_a",
+      "enemy.karekusa.battle.idle_b",
+      "enemy.karekusa.battle.attack",
+      "enemy.karekusa.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_karekusa_battle.png",
+    "rows": 1
+  },
+  "enemy.kaze_no_yami": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.kaze_no_yami.idle_a",
+      "enemy.kaze_no_yami.idle_b",
+      "enemy.kaze_no_yami.attack",
+      "enemy.kaze_no_yami.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_kaze_no_yami.png",
+    "rows": 1
+  },
+  "enemy.kaze_no_yami.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.kaze_no_yami.battle.idle_a",
+      "enemy.kaze_no_yami.battle.idle_b",
+      "enemy.kaze_no_yami.battle.attack",
+      "enemy.kaze_no_yami.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_kaze_no_yami_battle.png",
+    "rows": 1
+  },
+  "enemy.poku": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.poku.idle_a",
+      "enemy.poku.idle_b",
+      "enemy.poku.attack",
+      "enemy.poku.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_poku.png",
+    "rows": 1
+  },
+  "enemy.poku.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.poku.battle.idle_a",
+      "enemy.poku.battle.idle_b",
+      "enemy.poku.battle.attack",
+      "enemy.poku.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_poku_battle.png",
+    "rows": 1
+  },
+  "enemy.yamanushi": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.yamanushi.idle_a",
+      "enemy.yamanushi.idle_b",
+      "enemy.yamanushi.attack",
+      "enemy.yamanushi.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_yamanushi.png",
+    "rows": 1
+  },
+  "enemy.yamanushi.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.yamanushi.battle.idle_a",
+      "enemy.yamanushi.battle.idle_b",
+      "enemy.yamanushi.battle.attack",
+      "enemy.yamanushi.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_yamanushi_battle.png",
+    "rows": 1
+  },
+  "enemy.yukidama": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.yukidama.idle_a",
+      "enemy.yukidama.idle_b",
+      "enemy.yukidama.attack",
+      "enemy.yukidama.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_yukidama.png",
+    "rows": 1
+  },
+  "enemy.yukidama.battle": {
+    "cell": [
+      64,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "enemy.yukidama.battle.idle_a",
+      "enemy.yukidama.battle.idle_b",
+      "enemy.yukidama.battle.attack",
+      "enemy.yukidama.battle.damage"
+    ],
+    "path": "res://assets/images/enemies/enemy_yukidama_battle.png",
+    "rows": 1
+  },
+  "hero.battle": {
+    "cell": [
+      48,
+      64
+    ],
+    "cols": 4,
+    "frames": [
+      "hero.battle.idle",
+      "hero.battle.attack",
+      "hero.battle.damage",
+      "hero.battle.victory"
+    ],
+    "path": "res://assets/images/hero/hero_battle.png",
+    "rows": 1
+  },
+  "hero.field": {
+    "cell": [
+      24,
+      32
+    ],
+    "cols": 3,
+    "frames": [
+      "hero.field.down.stand",
+      "hero.field.down.step_l",
+      "hero.field.down.step_r",
+      "hero.field.up.stand",
+      "hero.field.up.step_l",
+      "hero.field.up.step_r",
+      "hero.field.left.stand",
+      "hero.field.left.step_l",
+      "hero.field.left.step_r",
+      "hero.field.right.stand",
+      "hero.field.right.step_l",
+      "hero.field.right.step_r"
+    ],
+    "path": "res://assets/images/hero/hero_field.png",
+    "rows": 4
+  },
+  "items.icons": {
+    "cell": [
+      16,
+      16
+    ],
+    "cols": 10,
+    "frames": [
+      "item.herba",
+      "item.kodama_no_kagami",
+      "item.harai_no_tsurugi",
+      "item.boro_no_tsurugi",
+      "item.yuki_no_tsurugi",
+      "item.kaze_no_tsurugi",
+      "item.yami_no_tsurugi",
+      "item.key",
+      "item.map",
+      "item.item_box"
+    ],
+    "path": "res://assets/images/items/items.png",
+    "rows": 1
+  },
+  "tiles.field": {
+    "cell": [
+      32,
+      32
+    ],
+    "cols": 6,
+    "frames": [
+      "tile.grass",
+      "tile.grass_flower",
+      "tile.dirt",
+      "tile.dirt_path",
+      "tile.cracked_ground",
+      "tile.water",
+      "tile.water_shore_sand",
+      "tile.tree",
+      "tile.rock",
+      "tile.big_rock",
+      "tile.signboard",
+      "tile.house_wall",
+      "tile.house_roof",
+      "tile.wooden_door",
+      "tile.stairs_up",
+      "tile.stairs_down",
+      "tile.town_road",
+      "tile.cave_floor",
+      "tile.cave_wall",
+      "tile.tower_floor",
+      "tile.tower_wall",
+      "tile.water_deep",
+      "tile.fence",
+      "tile.codex_stand"
+    ],
+    "path": "res://assets/images/tiles/tiles_field.png",
+    "rows": 4
+  },
+  "ui.parts": {
+    "cell": [
+      48,
+      48
+    ],
+    "cols": 1,
+    "frames": [
+      "ui.panel_9slice",
+      "ui.cursor",
+      "ui.face_poku",
+      "ui.bgm_note"
+    ],
+    "path": "res://assets/images/ui/ui_parts.png",
+    "rows": 4
+  }
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "poku",
+    "name": "ポクポク",
+    "element": "null"
+  },
+  {
+    "id": "karekusa",
+    "name": "カレクサ",
+    "element": "wind"
+  },
+  {
+    "id": "dosun",
+    "name": "ドスン",
+    "element": "earth"
+  },
+  {
+    "id": "kachikochi",
+    "name": "カチコチ",
+    "element": "ice"
+  },
+  {
+    "id": "hyun",
+    "name": "ヒュン",
+    "element": "wind"
+  },
+  {
+    "id": "yukidama",
+    "name": "ユキダマ",
+    "element": "ice"
+  },
+  {
+    "id": "yamanushi",
+    "name": "ヤマヌシ",
+    "element": "earth"
+  },
+  {
+    "id": "chap",
+    "name": "チャプ",
+    "element": "fire"
+  },
+  {
+    "id": "kaze_no_yami",
+    "name": "風の闇",
+    "element": "wind"
+  },
+  {
+    "id": "haka_bake",
+    "name": "墓場の化け",
+    "element": "dark"
+  }
+]
