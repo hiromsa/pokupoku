@@ -94,15 +94,29 @@
 - 入力は `InputRouter` の論理アクション (`move_up` / `move_down` / `move_left` / `move_right`)。
   `action_cancel` (X / Esc) でタイトルへ戻る。
 
-## 6. 歩行アニメ (`FrameAnimator` + `FieldHeroSprite`)
+## 6. 主人公アニメーション (`HeroFieldAnimation` + `FieldHeroSprite`)
 
-- `FrameAnimator.looping(["step_l", "step_r"], 0.16)`。静止時は `stop()` + `reset()` で
-  `stand` フレームを表示する。
-- 進行中は `step_l` ⇄ `step_r` を 0.16 秒ごとに循環。秒 → 進行は `advance(delta)` で注入する。
+- 位相の選択と進行は **`domain/anim/HeroFieldAnimation`** が持つ。view 側は解決された位相名を
+  テクスチャへ変換して貼るだけ (位相が変わったフレームのみ `texture` を差し替える)。
+- 歩行: `["step_l", "step_r"]` を `WALK_FRAME_SECONDS = 0.16` 秒で循環。
+- 待機 (足踏み): `["stand", "step_r", "stand", "step_l"]` を `IDLE_FRAME_SECONDS = 0.5` 秒で循環
+  (1 周期 2.0 秒)。間に `stand` を挟んで体重移動の間をつくり、歩行と静止の中間に見えるようにする。
+  「待機は歩行より 2 倍以上遅い」ことをテストで担保する。
+- 進行に使う秒数は `advance(delta)` で外部から注入する (domain は時間を知らない)。
+- 歩行 ⇄ 待機の切り替え時は使う Animator を `reset()` し、足が中途半端な位置から始まらないようにする。
+  向き変更是は歩行側のみ `reset()` (待機はそのまま継続してカクつきを防ぐ)。
 - フレーム名は `hero.field.<dir>.<phase>`。`SpriteSheetLayout.get_frame_texture("hero.field", ...)`
   でランタイム解決する (`SpriteFrames` に焼き込まないため、アセット再生成がそのまま反映される)。
 - 主人公はタイル中央 `(x + 0.5) * 32, (y + 0.5) * 32` に置く。`z_index = 10` でタイル上。
 - カメラは `Camera2D`。マップ範囲へ limit を張り、`position_smoothing_speed = 8.0`。
+  **初期位置を主人公中心へ設定してから** `make_current()` + `reset_smoothing()` を呼ぶ
+  (初期位置が (0,0) だとシーン開始直後に画面が滑って見える)。
+- 検証:
+  - `HeroFieldAnimationTest` — 時間を注入し、位相の順序・待機と歩行の速さ差・切り替え時の始点復帰を確認。
+  - `FieldAssetLookupTest` — 全方向の歩行 / 待機位相がヒーローシートに存在すること。
+  - 実機 — `res://tools/debug/CaptureField.tscn -- res://tmp_preview/x.png <待機フレーム数>` で
+    連番キャプチャを撮り、主人公の脚元を切り出して突き合わせる。0.5 秒ごとに
+    `stand → step_r → stand → step_l` へ変わり、背景差分 0 でカメラは静止していることを確認済み。
 
 ## 7. 未実装 (次フェーズ)
 

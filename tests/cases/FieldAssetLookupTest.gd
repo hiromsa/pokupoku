@@ -24,8 +24,9 @@ static func hero_directions() -> PackedStringArray:
 func test_every_hero_field_frame_resolves() -> void:
 	var layout: Node = TestFixtures.create_sprite_sheet_layout()
 	# 主人公スプライトが実際に組み立てる名前だけを、実装から直接拾って検証する。
+	# 歩行と待機 (足踏み) で使う位相を両方見る。
 	for direction: String in hero_directions():
-		for phase: String in FieldHeroSprite.walk_phases():
+		for phase: String in _hero_phases():
 			var frame_name: String = "%s.%s.%s" % [FieldHeroSprite.HERO_SHEET_ID, direction, phase]
 			var atlas: AtlasTexture = layout.get_frame_texture(FieldHeroSprite.HERO_SHEET_ID, frame_name)
 			assert_true(atlas != null, "hero frame resolves: %s" % frame_name)
@@ -33,14 +34,15 @@ func test_every_hero_field_frame_resolves() -> void:
 				continue
 			assert_eq(atlas.region.size, Vector2(HERO_CELL), "hero cell size: %s" % frame_name)
 			assert_true(atlas.atlas != null, "hero sheet bound: %s" % frame_name)
-	var stand_name: String = "%s.%s.%s" % [
-		FieldHeroSprite.HERO_SHEET_ID,
-		MovementController.DIRECTION_DOWN,
-		FieldHeroSprite.STAND_PHASE,
-	]
-	assert_true(layout.get_frame_texture(FieldHeroSprite.HERO_SHEET_ID, stand_name) != null,
-		"hero stand frame resolves: %s" % stand_name)
 	TestFixtures.free_node(layout)
+
+
+func _hero_phases() -> PackedStringArray:
+	var phases: PackedStringArray = HeroFieldAnimation.walk_phases()
+	for phase: String in HeroFieldAnimation.idle_phases():
+		if not phases.has(phase):
+			phases.append(phase)
+	return phases
 
 
 func test_every_map_tile_frame_resolves() -> void:
