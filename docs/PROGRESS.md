@@ -4,7 +4,7 @@
 > `docs/specification/ui.md` を読んで作業を引き継ぐこと (`.clinerules` 規定)。
 
 - **最終更新**: 2026-10-04 (Phase 2 のモック完了 / Phase 3 着手前)
-- **バージョン**: `0.0.1-beta.10`
+- **バージョン**: `0.0.1-beta.14`
 
 ---
 
@@ -192,6 +192,25 @@ tools/debug/CaptureField.*  640×360 を tmp_preview/field_scene.png へ保存 (
   (旧 §10 未確定事項は §11 へ繰り下げ)
 - `docs/specification/README.md` のインデックスを更新
 
+### 主人公の待機アニメーション (足踏み) — 追加実装
+
+静止中に「立っている」ことが分かるよう、**待機専用の位相循環**を domain 側へ追加した。
+
+| ファイル | 内容 |
+|---|---|
+| `src/domain/anim/HeroFieldAnimation.gd` | **新規**。歩行 `[step_l, step_r]` (0.16s) と待機 `[stand, step_r, stand, step_l]` (0.5s) の位相選択を持つ。画像もノードも知らない純ロジック |
+| `src/ui/FieldHeroSprite.gd` | 位相選択を `HeroFieldAnimation` へ委譲。view は位相名が変わったフレームだけテクスチャを差し替える |
+| `tests/cases/HeroFieldAnimationTest.gd` | **新規**。位相の順序・待機と歩行の速さ差・停止時の stand 復帰・向き変更時の挙動 |
+| `tests/cases/FieldAssetLookupTest.gd` | 全方向の **歩行 / 待機両方** の位相がシートに存在するかの検査へ拡張 |
+| `tools/debug/CaptureField.gd` | 出力先と待機フレーム数を実行引数で上書き可能に (`-- res://tmp_preview/x.png 45`) |
+| `tools/debug/crop_preview.py` | **新規**。スクショの指定領域を切り出して拡大する (目視レビュー用) |
+
+- アセットは既存の `stand` / `step_l` / `step_r` をそのまま利用 (再生成不要)。
+- 待機は 1 周期 2.0 秒。`stand` を間に挟むことで「フットタップの間」を作り、
+  歩行と静止の中間に見える速度にした (テストで「2 倍以上遅い」ことを担保)。
+- 実機検証のため、`FieldScene` のカメラ初期位置を主人公中心へ設定するよう修正
+  (開始直後に画面が滑る症状を解消)。
+
 ## 5. 検証結果
 
 | 検証 | Phase 1 | Phase 2 (現在) |
@@ -199,13 +218,14 @@ tools/debug/CaptureField.*  640×360 を tmp_preview/field_scene.png へ保存 (
 | `python tools/asset_gen/generate_all.py` | 26 PNG + 5 JSON | 26 PNG + 6 JSON (マップ JSON 増) |
 | `python tools/asset_gen/verify.py` | checks=500 failures=0 | **checks=721 failures=0** (タイル属性・下地・マップ検査増) |
 | `godot --headless --path . --import` | 成功、ERROR なし | 成功、ERROR なし |
-| `godot --headless --path . --script res://tests/run_tests.gd` | cases=25 assertions=453 | **cases=69 assertions=1508 failures=0 (RESULT: OK)** |
+| `godot --headless --path . --script res://tests/run_tests.gd` | cases=25 assertions=453 | **cases=77 assertions=1543 failures=0 (RESULT: OK)** |
 | `godot --path . --rendering-driver opengl3 --quit-after 120 res://tools/debug/CaptureField.tscn` | 未実施 | 成功。`tmp_preview/field_scene.png` で目視確認済み |
+| 待機アニメの連続キャプチャ (`CaptureField.tscn -- <out.png> <待機フレーム数>`) | 未実施 | 0.5 秒ごとに `stand → step_r → stand → step_l` へ切り替わることを脚元の切り出し差分で確認。背景領域の差分 0 = カメラ静止 |
 
 Phase 2 のテスト内訳: `ProjectConfigTest` / `UiPaletteTest` / `VersionTest` /
 `AssetManifestTest` / `SpriteSheetLayoutTest` / `TileCatalogTest` / `TileMapModelTest` /
 `MapLayoutDecoderTest` / `MovementControllerTest` / `FrameAnimatorTest` /
-`PrototypeMapTest` / `FieldAssetLookupTest`
+`HeroFieldAnimationTest` / `PrototypeMapTest` / `FieldAssetLookupTest`
 
 Phase 1 の目視レビュー結果 (主人公・エネミー・アイテム・UI の調整) は §3 を参照。
 
@@ -244,6 +264,14 @@ Phase 0 で出ていた `WARNING: Asset manifest not found: res://assets/images/
 14. 半透明タイルを足すときは `tile_index.json` の `base` も同時に足す。
     忘れると画面に背景色の穴として現れるが、実行時は無警告 (検査は `verify.py` と
     `PrototypeMapTest` が担う)
+15. **キャプチャ画像は 1280×720 で書き出される** (内部 640×360 + `content_scale_factor = 2.0`)。
+    `tools/debug/crop_preview.py` に渡す切り出し座標は **実画像ピクセル基準**
+    (= 論理座標 × 2)。論理解像度で指定すると的を外れる。
+16. **`Camera2D` は `make_current()` 時点の位置が補正の始点になる**。位置を設定せず current にすると
+    (0,0) から滑り始める。位置を設定 → `make_current()` → `reset_smoothing()` の順で固定する。
+17. **アニメの位相は「フレーム番号 ÷ 60」にはならない**。初フレームの `delta` が大きいため
+    想定より進む。連続キャプチャでの検証は絶対時刻ではなく **差分の周期**
+    (0.5 秒ごとにフレームが変わるか) で判定する。
 
 ## 7. 次の作業 (優先順)
 
@@ -262,6 +290,10 @@ Phase 0 で出ていた `WARNING: Asset manifest not found: res://assets/images/
    と戦闘シーン。`enemy.<id>.battle` (64×64) と `hero.battle` を使用
 6. **タイトル → フィールドの開始フロー** — `TitleScene` の「はじめから」で
    `SceneRouter.goto()`。セーブスロット選択は Phase 4
+7. **ドキュメントの整理** — `docs/specification/map-system.md` に旧構成の §1〜§7 が重複収録
+   (現行は前半のみ)。削除するか「履歴」へまとめる。あわせて §3 / §4 のマップ例が
+   実データ (`assets/data/maps/prototype_village.json` = 30×20) と食い違っている
+   (`assets/maps/prototype_field.json` = 40×24 と記載)
 
 ## 8. 未確定事項 (ユーザー確認が必要)
 
