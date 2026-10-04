@@ -6,13 +6,28 @@ extends RefCounted
 # ロジック単体のテストがアセット生成の有無に左右されないようにする。
 
 const SAMPLE_TILE_COUNT: int = 4
+const SPRITE_SHEET_LAYOUT_PATH: String = "res://src/core/SpriteSheetLayout.gd"
+
+
+# autoload のノードを複製せず、スクリプトから直接インスタンス化する。
+# _ready はツリー追加時に走るため、同じ処理である reload_layouts() を明示的に呼ぶ。
+static func create_sprite_sheet_layout() -> Node:
+	var script: GDScript = load(SPRITE_SHEET_LAYOUT_PATH)
+	var layout: Node = script.new() as Node
+	layout.reload_layouts()
+	return layout
+
+
+static func free_node(node: Node) -> void:
+	if node != null:
+		node.free()
 
 
 static func sample_catalog() -> TileCatalog:
 	return TileCatalog.from_dictionary({
 		"grass": {"frame": 0, "solid": false},
 		"dirt_path": {"frame": 1, "solid": false},
-		"tree": {"frame": 2, "solid": true},
+		"tree": {"frame": 2, "solid": true, "base": "grass"},
 		"water": {"frame": 3, "solid": true},
 	})
 

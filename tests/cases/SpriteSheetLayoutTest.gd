@@ -6,8 +6,6 @@ extends TestCase
 # この解決が壊れるとフィールド / 戦闘の描画がすべて止まる。
 # 列順やセルサイズを変えたときに region 計算が追随しているかをここで押さえる。
 
-const LAYOUT_SCRIPT_PATH: String = "res://src/core/SpriteSheetLayout.gd"
-
 const HERO_FIELD: String = "hero.field"
 const HERO_FIELD_CELL: Vector2i = Vector2i(24, 32)
 const HERO_FIELD_COLS: int = 3
@@ -94,14 +92,9 @@ func test_atlas_instances_are_cached_per_frame() -> void:
 
 
 func _create_layout() -> Node:
-	# autoload のノードを複製せず、スクリプトから直接インスタンス化して検証する。
-	# _ready はツリー追加時に走るため、同じ処理である reload_layouts() を明示的に呼ぶ。
-	var script: GDScript = load(LAYOUT_SCRIPT_PATH)
-	var layout: Node = script.new() as Node
-	layout.reload_layouts()
-	return layout
+	# 実装は TestFixtures に統一。この薄いラッパーで既存テスト構造を保つ。
+	return TestFixtures.create_sprite_sheet_layout()
 
 
 func _free_layout(layout: Node) -> void:
-	if layout != null:
-		layout.free()
+	TestFixtures.free_node(layout)
