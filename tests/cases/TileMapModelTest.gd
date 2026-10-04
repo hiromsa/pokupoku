@@ -52,3 +52,14 @@ func test_iter_tiles_covers_every_cell_once() -> void:
 	assert_eq(tiles.size(), MAP_WIDTH * MAP_HEIGHT, "every cell visited once")
 	assert_eq(tiles[0], Vector2i(0, 0), "row-major order starts at the origin")
 	assert_eq(tiles[tiles.size() - 1], Vector2i(MAP_WIDTH - 1, MAP_HEIGHT - 1), "ends at the far corner")
+
+
+func test_drawing_resolves_the_ground_under_an_obstacle() -> void:
+	var map: TileMapModel = TileMapModel.create(MAP_WIDTH, MAP_HEIGHT, TestFixtures.sample_catalog())
+	map.set_tile(Vector2i(1, 1), "grass")
+	map.set_tile(Vector2i(2, 1), "tree")
+	assert_eq(map.base_tile_id_at(Vector2i(2, 1)), "grass", "obstacle cell reports its ground")
+	assert_eq(map.base_tile_id_at(Vector2i(1, 1)), TileMapModel.EMPTY_TILE, "plain ground needs no base")
+	assert_eq(map.base_tile_id_at(Vector2i(3, 1)), TileMapModel.EMPTY_TILE, "empty cell has no base")
+	assert_eq(map.base_tile_id_at(Vector2i(-1, 0)), TileMapModel.EMPTY_TILE, "outside has no base")
+	assert_true(map.is_solid(Vector2i(2, 1)), "the ground below does not make the tree walkable")

@@ -333,17 +333,36 @@ SOLID_TILES: frozenset = frozenset({
 })
 
 
+# 描画時に下へ敷く地面タイル。
+# 樹木・岩・柵などは画像自体が透明背景のため、地面を先に引かないと
+# 画面の背景色 (濃紺) がそのまま見えてしまう。
+# 透明ピクセルを持つタイルの宣言漏れは verify.py が画像から検出する。
+# 図鑑台は室内床に置く前提 (Phase 4 以降) なので cave_floor を下地にしている。
+BASE_TILES: Dict[str, str] = {
+    "tree": "grass",
+    "rock": "grass",
+    "big_rock": "grass",
+    "signboard": "grass",
+    "fence": "grass",
+    "codex_stand": "cave_floor",
+}
+
+
 def tile_catalog_payload() -> Dict[str, Dict[str, object]]:
-    """tile_index.json の中身。タイル名 -> {frame, solid}。
+    """tile_index.json の中身。タイル名 -> {frame, solid, base?}。
 
     frame はアトラス内の row-major 列番号。solid は当たり判定の真偽。
+    base は描画時に下へ敷く地面タイル (透明部分の埋め合わせ)。
     Godot 側 (domain/data/TileCatalog.gd) がそのまま読む。
     """
     names: List[str] = list(TILE_BUILDERS.keys())
-    return {
-        name: {"frame": index, "solid": name in SOLID_TILES}
-        for index, name in enumerate(names)
-    }
+    payload: Dict[str, Dict[str, object]] = {}
+    for index, name in enumerate(names):
+        entry: Dict[str, object] = {"frame": index, "solid": name in SOLID_TILES}
+        if name in BASE_TILES:
+            entry["base"] = BASE_TILES[name]
+        payload[name] = entry
+    return payload
 
 
 def build_tiles_field_atlas() -> Tuple[Sheet, List[str]]:

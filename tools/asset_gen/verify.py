@@ -129,7 +129,46 @@ def verify_tiles(verifier: Verifier, sheet_meta: dict) -> dict:
     for tile_name in set(tiles_field.tile_names()) - tiles_field.SOLID_TILES:
         verifier.check(not bool(tile_index.get(tile_name, {}).get("solid")),
                        f"tile {tile_name} is passable")
+    verify_tile_bases(verifier, tile_index, sheet_meta)
     return tile_index
+
+
+def verify_tile_bases(verifier: Verifier, tile_index: dict, sheet_meta: dict) -> None:
+    """下地タイルの宣言を検証する。
+
+    樹木・岩・柵などは画像自体が透明背景のため、下に地面を敷かないと
+    画面の背景色が見えてしまう。宣言の妥当性はもちろん、
+    「透明ピクセルがあるのに下地が無い」も画像を実測して検出する。
+    """
+    for tile_name, base_name in sorted(tiles_field.BASE_TILES.items()):
+        verifier.check(base_name in tile_index,
+                       f"tile {tile_name} base {base_name!r} is a known tile")
+        verifier.check(base_name != tile_name, f"tile {tile_name} base is not itself")
+        verifier.check(not tile_index.get(base_name, {}).get("solid"),
+                       f"tile {tile_name} base {base_name!r} is walkable ground")
+    for tile_name, entry in sorted(tile_index.items()):
+        declared = entry.get("base", "")
+        verifier.check(declared == tiles_field.BASE_TILES.get(tile_name, ""),
+                       f"tile {tile_name} base matches the generator")
+
+    meta = sheet_meta.get("tiles.field", {})
+    absolute = PROJECT_ROOT / str(meta.get("path", "")).removeprefix("res://")
+    if not absolute.exists():
+        verifier.check(False, "tiles.field png available for the base check")
+        return
+    cols, cell = meta["cols"], meta["cell"]
+    with Image.open(absolute) as image:
+        rgba = image.convert("RGBA")
+        for tile_name, entry in sorted(tile_index.items()):
+            frame = entry.get("frame")
+            if not isinstance(frame, int):
+                continue
+            cell_x, cell_y = (frame % cols) * cell[0], (frame // cols) * cell[1]
+            cell_image = rgba.crop((cell_x, cell_y, cell_x + cell[0], cell_y + cell[1]))
+            transparent = sum(1 for alpha in cell_image.getchannel("A").getdata() if alpha == 0)
+            if transparent > 0:
+                verifier.check(bool(entry.get("base")),
+                               f"tile {tile_name} declares a base for its {transparent} transparent px")
 
 
 def verify_maps(verifier: Verifier, tile_index: dict) -> None:

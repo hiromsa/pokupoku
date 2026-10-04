@@ -1,5 +1,6 @@
 {
   "big_rock": {
+    "base": "grass",
     "frame": 9,
     "solid": true
   },
@@ -12,6 +13,7 @@
     "solid": true
   },
   "codex_stand": {
+    "base": "cave_floor",
     "frame": 23,
     "solid": false
   },
@@ -28,6 +30,7 @@
     "solid": false
   },
   "fence": {
+    "base": "grass",
     "frame": 22,
     "solid": true
   },
@@ -48,10 +51,12 @@
     "solid": true
   },
   "rock": {
+    "base": "grass",
     "frame": 8,
     "solid": true
   },
   "signboard": {
+    "base": "grass",
     "frame": 10,
     "solid": true
   },
@@ -76,6 +81,7 @@
     "solid": false
   },
   "tree": {
+    "base": "grass",
     "frame": 7,
     "solid": true
   },

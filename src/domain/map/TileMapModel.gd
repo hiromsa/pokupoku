@@ -67,6 +67,15 @@ func is_solid(tile: Vector2i) -> bool:
 	return not is_passable(tile)
 
 
+# 描画層が下へ敷く地面タイル。障害物タイルの透明部分を埋める。
+# 判定 (is_passable) は常に上のタイルだけで決まるため、描画と当たり判定は独立。
+func base_tile_id_at(tile: Vector2i) -> String:
+	var tile_id: String = tile_id_at(tile)
+	if tile_id == EMPTY_TILE or _catalog == null:
+		return EMPTY_TILE
+	return _catalog.base_tile_id(tile_id)
+
+
 # 全タイルを (x, y) 昇順でたどる。描画層がまとめて走査できるようにする。
 func iter_tiles() -> Array[Vector2i]:
 	var tiles: Array[Vector2i] = []

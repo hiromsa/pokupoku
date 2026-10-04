@@ -65,6 +65,24 @@ func test_water_and_houses_actually_block() -> void:
 	assert_true(map.is_solid(Vector2i(15, 13)), "a door is not walkable ground yet")
 
 
+# 樹木や柵は画像が透明背景のため、下地の指定漏れは画面に穴として現れる。
+func test_every_obstacle_sits_on_declared_ground() -> void:
+	var map: TileMapModel = _build_map()
+	var catalog: TileCatalog = _catalog()
+	var obstacles_checked: int = 0
+	for tile: Vector2i in map.iter_tiles():
+		var tile_id: String = map.tile_id_at(tile)
+		if tile_id == TileMapModel.EMPTY_TILE:
+			continue
+		var base_id: String = map.base_tile_id_at(tile)
+		if base_id == TileMapModel.EMPTY_TILE:
+			continue
+		obstacles_checked += 1
+		assert_true(catalog.is_registered(base_id), "base tile registered at %s" % str(tile))
+		assert_false(catalog.is_solid(base_id), "base tile is walkable ground at %s" % str(tile))
+	assert_true(obstacles_checked > 0, "the prototype map actually uses tiles with a base")
+
+
 func _build_map() -> TileMapModel:
 	var definition: MapDefinition = MapDefinition.from_dictionary(read_json(MAP_PATH))
 	return definition.build_tile_map(_catalog())

@@ -56,3 +56,30 @@ func test_tile_ids_are_reported_sorted() -> void:
 	var ids: PackedStringArray = catalog.tile_ids()
 	assert_eq(ids.size(), 2, "tile id count")
 	assert_eq(ids[0], "grass", "ids sorted deterministically")
+
+
+func test_declared_base_tile_is_resolved() -> void:
+	var catalog: TileCatalog = TileCatalog.from_dictionary({
+		"grass": {"frame": 0, "solid": false},
+		"tree": {"frame": 1, "solid": true, "base": "grass"},
+	})
+	assert_eq(catalog.base_tile_id("tree"), "grass", "obstacle resolves its ground")
+	assert_eq(catalog.base_tile_id("grass"), TileCatalog.NO_BASE, "ground needs no base")
+
+
+func test_unusable_base_falls_back_to_no_base() -> void:
+	var catalog: TileCatalog = TileCatalog.from_dictionary({
+		"grass": {"frame": 0, "solid": false},
+		"tree": {"frame": 1, "solid": true, "base": "grass"},
+		"unregistered_base": {"frame": 2, "solid": true, "base": "not_in_catalog"},
+		"self_base": {"frame": 3, "solid": true, "base": "self_base"},
+		"wrong_type_base": {"frame": 4, "solid": true, "base": 7},
+	})
+	assert_eq(catalog.base_tile_id("unregistered_base"), TileCatalog.NO_BASE,
+		"base pointing at an unknown tile is ignored")
+	assert_eq(catalog.base_tile_id("self_base"), TileCatalog.NO_BASE,
+		"a tile cannot be its own ground")
+	assert_eq(catalog.base_tile_id("wrong_type_base"), TileCatalog.NO_BASE,
+		"a non-string base is ignored")
+	assert_eq(catalog.base_tile_id("not_in_catalog"), TileCatalog.NO_BASE,
+		"unknown tile has no base")

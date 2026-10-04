@@ -6,6 +6,8 @@ extends RefCounted
 # 「どのタイルが通行を塞ぐか」の単一の定義元であり、
 # フィールドも戦闘もここ以外で当たり判定を判断しない。
 
+const NO_BASE: String = ""
+
 var _entries: Dictionary = {}
 
 
@@ -52,3 +54,15 @@ func is_solid(tile_id: String) -> bool:
 	if not _entries.has(tile_id):
 		return true
 	return bool(_entries[tile_id].get("solid", true))
+
+
+# 描画時に下へ敷く地面タイル。樹木・岩などは画像が透明背景のため、
+# 先に地面を引かないと画面の背景色が見えてしまう。
+# 未指定・未登録・自分自身を指す場合は NO_BASE (何も敷かない)。
+func base_tile_id(tile_id: String) -> String:
+	if not _entries.has(tile_id):
+		return NO_BASE
+	var base: Variant = _entries[tile_id].get("base", NO_BASE)
+	if typeof(base) != TYPE_STRING or base == tile_id or not _entries.has(base):
+		return NO_BASE
+	return base
