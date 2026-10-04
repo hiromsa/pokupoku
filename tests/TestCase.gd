@@ -50,6 +50,18 @@ func fail_test(label: String, detail: String) -> void:
 	_record_failure(label, detail)
 
 
+# データとして生成された JSON を読み込む。壊れていればその場で失敗として記録する。
+func read_json(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		fail_test("read_json", "missing file: %s" % path)
+		return {}
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if typeof(parsed) != TYPE_DICTIONARY:
+		fail_test("read_json", "not a json object: %s" % path)
+		return {}
+	return parsed as Dictionary
+
+
 func discover_case_methods() -> PackedStringArray:
 	var names := PackedStringArray()
 	var seen := {}

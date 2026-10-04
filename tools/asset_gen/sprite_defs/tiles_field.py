@@ -322,6 +322,30 @@ def tile_names() -> List[str]:
     return list(TILE_BUILDERS.keys())
 
 
+# 通行を塞ぐタイル。フィールドの当たり判定はここから導出する (データ駆動)。
+# 調べられるオブジェクト (看板・図鑑台) も、プレイヤーが重なって読めなくなるため塞ぐ。
+# 扉は Phase 4 のイベントで開閉する想定のため、床として歩かせない。
+SOLID_TILES: frozenset = frozenset({
+    "tree", "rock", "big_rock", "signboard",
+    "house_wall", "house_roof", "fence", "wooden_door",
+    "water", "water_deep",
+    "cave_wall", "tower_wall",
+})
+
+
+def tile_catalog_payload() -> Dict[str, Dict[str, object]]:
+    """tile_index.json の中身。タイル名 -> {frame, solid}。
+
+    frame はアトラス内の row-major 列番号。solid は当たり判定の真偽。
+    Godot 側 (domain/data/TileCatalog.gd) がそのまま読む。
+    """
+    names: List[str] = list(TILE_BUILDERS.keys())
+    return {
+        name: {"frame": index, "solid": name in SOLID_TILES}
+        for index, name in enumerate(names)
+    }
+
+
 def build_tiles_field_atlas() -> Tuple[Sheet, List[str]]:
     """6 列に詰めたタイルアトラス。frame_index = row * ATLAS_COLS + col。"""
     names: List[str] = list(TILE_BUILDERS.keys())

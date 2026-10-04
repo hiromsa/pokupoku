@@ -8,6 +8,7 @@
     assets/images/manifest.json             論理アセットID -> res:// パス
     assets/images/sheets.json               シートレイアウト (cols/rows/cell/frames)
     assets/data/enemy_catalog.json          エネミー一覧 (Phase 3/4 のデータテーブル種データ)
+    assets/data/maps/prototype_village.json Phase 2 モック用マップ (文字列アート)
 """
 
 from __future__ import annotations
@@ -23,10 +24,12 @@ sys.path.insert(0, str(HERE))
 
 from sprite_defs import enemies, hero, items, tiles_field, ui_parts  # noqa: E402
 from pixel_canvas import Sheet  # noqa: E402
+import prototype_map  # noqa: E402
 
 ASSETS_DIR = PROJECT_ROOT / "assets"
 IMAGES_DIR = ASSETS_DIR / "images"
 DATA_DIR = ASSETS_DIR / "data"
+MAPS_DIR = DATA_DIR / "maps"
 
 
 def _res_path(absolute_path: Path) -> str:
@@ -88,10 +91,10 @@ def generate_tiles(manifest: ManifestWriter) -> None:
     atlas, names = tiles_field.build_tiles_field_atlas()
     manifest.add_sheet("tiles.field", atlas, IMAGES_DIR / "tiles" / "tiles_field.png")
 
-    # タイル名 -> frame_index の対応を Godot 側が引けるように出す
-    tile_index_map = {name: index for index, name in enumerate(names)}
+    # タイル名 -> {frame, solid} を Godot 側が引けるように出す (当たり判定の正)
     (IMAGES_DIR / "tiles" / "tile_index.json").write_text(
-        json.dumps(tile_index_map, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+        json.dumps(tiles_field.tile_catalog_payload(), ensure_ascii=False, indent=2, sort_keys=True),
+        encoding="utf-8")
 
 
 def generate_items(manifest: ManifestWriter) -> None:
@@ -108,6 +111,14 @@ def generate_ui(manifest: ManifestWriter) -> None:
     manifest.add_image("ui.icon", ui_parts.build_app_icon(64), ui_dir / "icon.png")
 
 
+def generate_maps() -> None:
+    """モック用マップを JSON データとして出力する。地形編集は GDScript 外でできる。"""
+    MAPS_DIR.mkdir(parents=True, exist_ok=True)
+    (MAPS_DIR / f"{prototype_map.MAP_ID}.json").write_text(
+        json.dumps(prototype_map.prototype_map_payload(), ensure_ascii=False, indent=2),
+        encoding="utf-8")
+
+
 def main() -> int:
     manifest = ManifestWriter()
     generate_hero(manifest)
@@ -115,6 +126,7 @@ def main() -> int:
     generate_tiles(manifest)
     generate_items(manifest)
     generate_ui(manifest)
+    generate_maps()
     manifest.write()
 
     print(f"generated {len(manifest.paths)} image assets -> {IMAGES_DIR}")

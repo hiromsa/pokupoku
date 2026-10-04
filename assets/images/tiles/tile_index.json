@@ -1,26 +1,98 @@
 {
-  "big_rock": 9,
-  "cave_floor": 17,
-  "cave_wall": 18,
-  "codex_stand": 23,
-  "cracked_ground": 4,
-  "dirt": 2,
-  "dirt_path": 3,
-  "fence": 22,
-  "grass": 0,
-  "grass_flower": 1,
-  "house_roof": 12,
-  "house_wall": 11,
-  "rock": 8,
-  "signboard": 10,
-  "stairs_down": 15,
-  "stairs_up": 14,
-  "tower_floor": 19,
-  "tower_wall": 20,
-  "town_road": 16,
-  "tree": 7,
-  "water": 5,
-  "water_deep": 21,
-  "water_shore_sand": 6,
-  "wooden_door": 13
+  "big_rock": {
+    "frame": 9,
+    "solid": true
+  },
+  "cave_floor": {
+    "frame": 17,
+    "solid": false
+  },
+  "cave_wall": {
+    "frame": 18,
+    "solid": true
+  },
+  "codex_stand": {
+    "frame": 23,
+    "solid": false
+  },
+  "cracked_ground": {
+    "frame": 4,
+    "solid": false
+  },
+  "dirt": {
+    "frame": 2,
+    "solid": false
+  },
+  "dirt_path": {
+    "frame": 3,
+    "solid": false
+  },
+  "fence": {
+    "frame": 22,
+    "solid": true
+  },
+  "grass": {
+    "frame": 0,
+    "solid": false
+  },
+  "grass_flower": {
+    "frame": 1,
+    "solid": false
+  },
+  "house_roof": {
+    "frame": 12,
+    "solid": true
+  },
+  "house_wall": {
+    "frame": 11,
+    "solid": true
+  },
+  "rock": {
+    "frame": 8,
+    "solid": true
+  },
+  "signboard": {
+    "frame": 10,
+    "solid": true
+  },
+  "stairs_down": {
+    "frame": 15,
+    "solid": false
+  },
+  "stairs_up": {
+    "frame": 14,
+    "solid": false
+  },
+  "tower_floor": {
+    "frame": 19,
+    "solid": false
+  },
+  "tower_wall": {
+    "frame": 20,
+    "solid": true
+  },
+  "town_road": {
+    "frame": 16,
+    "solid": false
+  },
+  "tree": {
+    "frame": 7,
+    "solid": true
+  },
+  "water": {
+    "frame": 5,
+    "solid": true
+  },
+  "water_deep": {
+    "frame": 21,
+    "solid": true
+  },
+  "water_shore_sand": {
+    "frame": 6,
+    "solid": false
+  },
+  "wooden_door": {
+    "frame": 13,
+    "solid": true
+  }
 }

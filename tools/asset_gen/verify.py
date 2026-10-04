@@ -12,7 +12,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from PIL import Image
 
@@ -22,8 +22,10 @@ sys.path.insert(0, str(HERE))
 
 from palette import UI_PALETTE_CONTRACT  # noqa: E402
 from sprite_defs import enemies, tiles_field  # noqa: E402
+import prototype_map  # noqa: E402
 
 IMAGES_DIR = PROJECT_ROOT / "assets" / "images"
+DATA_DIR = PROJECT_ROOT / "assets" / "data"
 EXPECTED_ENEMY_PATTERNS = ("idle_a", "idle_b", "attack", "damage")
 
 
@@ -100,14 +102,79 @@ def verify_enemies(verifier: Verifier, sheets: dict) -> None:
                            f"enemy {enemy_def.enemy_id} has {pattern} frame")
 
 
-def verify_tiles(verifier: Verifier) -> None:
+def verify_tiles(verifier: Verifier, sheet_meta: dict) -> dict:
     index_path = IMAGES_DIR / "tiles" / "tile_index.json"
     verifier.check(index_path.exists(), "tile_index.json exists")
     if not index_path.exists():
-        return
+        return {}
     tile_index = json.loads(index_path.read_text(encoding="utf-8"))
+    tile_frames = sheet_meta.get("tiles.field", {}).get("frames", [])
     for tile_name in tiles_field.tile_names():
-        verifier.check(tile_name in tile_index, f"tile {tile_name} indexed")
+        entry = tile_index.get(tile_name)
+        verifier.check(isinstance(entry, dict), f"tile {tile_name} indexed")
+        if not isinstance(entry, dict):
+            continue
+        frame = entry.get("frame")
+        verifier.check(frame == tiles_field.tile_names().index(tile_name),
+                       f"tile {tile_name} frame index matches atlas order")
+        verifier.check(f"tile.{tile_name}" in tile_frames,
+                       f"tile {tile_name} frame present in sheets.json")
+        verifier.check(isinstance(entry.get("solid"), bool),
+                       f"tile {tile_name} has a boolean solid flag")
+    verifier.check(set(tile_index) == set(tiles_field.tile_names()),
+                   "tile_index.json covers exactly the defined tiles")
+    for tile_name in tiles_field.SOLID_TILES:
+        verifier.check(bool(tile_index.get(tile_name, {}).get("solid")),
+                       f"tile {tile_name} is solid")
+    for tile_name in set(tiles_field.tile_names()) - tiles_field.SOLID_TILES:
+        verifier.check(not bool(tile_index.get(tile_name, {}).get("solid")),
+                       f"tile {tile_name} is passable")
+    return tile_index
+
+
+def verify_maps(verifier: Verifier, tile_index: dict) -> None:
+    """モックマップがプレイ可能な形になっているかを検証する。
+
+    地形は JSON データなので、Godot を起動せずにここで壊れを検出できる。
+    """
+    map_path = DATA_DIR / "maps" / f"{prototype_map.MAP_ID}.json"
+    verifier.check(map_path.exists(), "prototype map json exists")
+    if not map_path.exists():
+        return
+    payload = json.loads(map_path.read_text(encoding="utf-8"))
+
+    rows: List[str] = payload.get("rows", [])
+    glyphs: Dict[str, str] = payload.get("glyphs", {})
+    verifier.check(len(rows) == prototype_map.MAP_HEIGHT,
+                   f"map has {prototype_map.MAP_HEIGHT} rows")
+    verifier.check(all(len(row) == prototype_map.MAP_WIDTH for row in rows),
+                   "every map row is exactly the map width")
+    for glyph, tile_id in glyphs.items():
+        verifier.check(tile_id in tile_index, f"glyph {glyph!r} -> known tile {tile_id!r}")
+
+    solid_ids = {name for name, entry in tile_index.items() if entry.get("solid")}
+
+    def is_solid_cell(x: int, y: int) -> bool:
+        glyph = rows[y][x]
+        tile_id = glyphs.get(glyph, "")
+        return tile_id == "" or tile_id in solid_ids
+
+    spawn = payload.get("spawn", {})
+    spawn_x, spawn_y = int(spawn.get("x", -1)), int(spawn.get("y", -1))
+    verifier.check(0 <= spawn_x < prototype_map.MAP_WIDTH and 0 <= spawn_y < prototype_map.MAP_HEIGHT,
+                   "spawn point inside map bounds")
+    verifier.check(not is_solid_cell(spawn_x, spawn_y), "spawn point is walkable")
+
+    for x in range(prototype_map.MAP_WIDTH):
+        verifier.check(is_solid_cell(x, 0) and is_solid_cell(x, prototype_map.MAP_HEIGHT - 1),
+                       f"map edge sealed at column {x}")
+    for y in range(prototype_map.MAP_HEIGHT):
+        verifier.check(is_solid_cell(0, y) and is_solid_cell(prototype_map.MAP_WIDTH - 1, y),
+                       f"map edge sealed at row {y}")
+
+    walkable = sum(1 for row in rows for glyph in row
+                   if glyphs.get(glyph, "") and glyphs[glyph] not in solid_ids)
+    verifier.check(walkable > 100, f"map offers enough walkable ground (got {walkable})")
 
 
 def verify_palette_contract(verifier: Verifier) -> None:
@@ -140,7 +207,8 @@ def main() -> int:
 
     verify_sheets(verifier, sheet_meta)
     verify_enemies(verifier, sheet_meta)
-    verify_tiles(verifier)
+    tile_index = verify_tiles(verifier, sheet_meta)
+    verify_maps(verifier, tile_index)
     verify_palette_contract(verifier)
 
     print("=== asset verification ===")

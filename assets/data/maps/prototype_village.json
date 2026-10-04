@@ -1,0 +1,52 @@
+{
+  "id": "prototype_village",
+  "name": "はじまりの草原",
+  "spawn": {
+    "x": 5,
+    "y": 11
+  },
+  "glyphs": {
+    "T": "tree",
+    "F": "fence",
+    "g": "grass",
+    "f": "grass_flower",
+    "d": "dirt",
+    "p": "dirt_path",
+    "c": "cracked_ground",
+    "s": "water_shore_sand",
+    "w": "water",
+    "W": "water_deep",
+    "r": "rock",
+    "R": "big_rock",
+    "S": "signboard",
+    "H": "house_wall",
+    "O": "house_roof",
+    "D": "wooden_door",
+    "u": "stairs_up",
+    "U": "stairs_down",
+    "o": "town_road",
+    "K": "codex_stand"
+  },
+  "rows": [
+    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+    "TTTggggggTTTTTTTTTTTTTTTTTTTTT",
+    "TTgggggggggTTTrrrrTTTTTTTTTTTT",
+    "TTggfggggggTTrrrrrrTTTTTTTTTTT",
+    "TgggggggggggTrrrrrrTTTTTTTTTTT",
+    "TgggTgggggggTrrrrTTTTTTTTTTTTT",
+    "TgggTTggggggTTrrTTTTTTTTTTTTTT",
+    "TgggTTTggggggTTTTTTTggggTTTTTT",
+    "TggTTTggggggggTTTTgggggggTTTTT",
+    "TggTTggggggggggggggggggggTTTTT",
+    "TpppppppppppoooooooooooooTTTTT",
+    "TggTTggggggggoHHHHHHHgggTTTTTT",
+    "TggTTggggggggoHDDHHHggggTTTTTT",
+    "TggTTggggggggoHHHHHHgKggTTTTTT",
+    "TggTTggggggggooooooooogggTTTTT",
+    "TTTTgggggggggggggwwwwggggTTTTT",
+    "TTTTTTggggggggggwwwwwwggTTTTTT",
+    "TFFFFFFFFFFFFFFFFFFFFFFFFFFFFT",
+    "TFFFFFFFFFFFFFFFFFFFFFFFFFFFFT"
+  ]
+}
