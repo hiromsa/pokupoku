@@ -5,6 +5,7 @@ export_build/
 
 # --- ローカルツールチェーン (Godot エディタ本体など、リポジトリに置かない) ---
 tools/godot/
+tmp_preview/
 
 # --- Python (アセット生成ツール) ---
 __pycache__/

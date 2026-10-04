@@ -14,8 +14,8 @@ const APP_MAJOR: int = 0
 const APP_MINOR: int = 0
 const APP_PATCH: int = 1
 
-var app_build_number: int = 2
-var app_commit_hash: String = "ca12294"
+var app_build_number: int = 3
+var app_commit_hash: String = "c9320c1"
 
 
 func get_short_version() -> String:

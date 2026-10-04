@@ -10,7 +10,7 @@ extends TestCase
 #   [autoload]    -> autoload/<Name>
 
 const REQUIRED_AUTOLOADS: Array[String] = [
-	"Version", "EventBus", "InputRouter", "AssetRegistry",
+	"Version", "EventBus", "InputRouter", "AssetRegistry", "SpriteSheetLayout",
 	"AudioManager", "SaveManager", "SceneRouter",
 ]
 
